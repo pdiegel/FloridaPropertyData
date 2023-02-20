@@ -5,12 +5,13 @@ from zipfile import ZipFile
 import time
 
 
-
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
 TEMP_DOWNLOAD_DESTINATION = os.path.join(DATA_DIR, 'temp.zip')
 COUNTIES = ['sarasota', 'manatee', 'charlotte']
 COUNTY_DIRECTORIES = [os.path.join(DATA_DIR, county) for county in COUNTIES]
+COLUMN_RENAME_DICTIONARY = {'Parcel ID': ['account', 'Parcel ID',
+                                          'parcelid', 'ParcelID', 'ACCOUNT', 'PARID'], 'Street': ['LOCS']}
 
 
 def determine_county(download_url: str) -> str:
@@ -42,6 +43,7 @@ def unzip_file(file_path):
         os.remove(file_path)
     print('File unzipped successfully.')
 
+
 def determine_file_delimiter(item_path):
     '''Returns a text file's delimiter'''
     sep = ','
@@ -51,12 +53,13 @@ def determine_file_delimiter(item_path):
                 sep = '|'
     return sep
 
+
 def convert_files_to_gzip():
     for directory in COUNTY_DIRECTORIES:
         for item in os.listdir(directory):
             item_path = os.path.join(directory, item)
             sep = determine_file_delimiter(item_path)
-            
+
             if not os.path.isfile(item_path) or item_path.endswith('gzip'):
                 continue
 
@@ -64,17 +67,19 @@ def convert_files_to_gzip():
             gzip_path = os.path.join(directory, f'{file_name}.gzip')
 
             temporary_df = pd.read_csv(item_path, encoding='latin1',
-                             on_bad_lines='skip', dtype=str, sep=sep,
-                             skipinitialspace=True)
+                                       on_bad_lines='skip', dtype=str, sep=sep,
+                                       skipinitialspace=True)
             temporary_df.fillna('0', inplace=True)
 
             columns_to_check = ['account', 'Parcel ID',
                                 'parcelid', 'ParcelID', 'ACCOUNT', 'PARID']
             for col in columns_to_check:
                 if col in temporary_df.columns:
-                    temporary_df.rename({col:'Parcel ID'}, axis='columns', inplace=True)
+                    temporary_df.rename(
+                        {col: 'Parcel ID'}, axis='columns', inplace=True)
                     print(f'Changed "{col}" column to "Parcel ID" in {item}.')
-            temporary_df.to_csv(gzip_path, index=False, compression='gzip', sep=sep)
+            temporary_df.to_csv(gzip_path, index=False,
+                                compression='gzip', sep=sep)
             os.remove(item_path)
             print(f'File {item} converted to gzip successfully')
 
@@ -120,12 +125,12 @@ def main():
         move_unzipped_files(county)
         print()
         file_num += 1
-    print('Converting all files to gzip..')
+
     convert_files_to_gzip()
-    print('Done.')
     end = time.time()
     print(f'Finished in {end-start} seconds.')
     print(f'Finished in {(end-start)/60} minutes.')
+
 
 if __name__ == '__main__':
     main()
