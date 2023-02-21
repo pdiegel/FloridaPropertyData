@@ -1,24 +1,15 @@
-import pandas as pd
-
-
-class ParcelDatabase:
-    def __init__(self, county_databases):
-        self.county_databases = county_databases
-
-    def find_parcel_data(self, parcel_id):
-        if county in self.county_databases:
-            county_database = self.county_databases[county]
-            parcel_data = county_database[county_database['parcel_id'] == parcel_id]
-            if not parcel_data.empty:
-                return parcel_data
-            else:
-                print(
-                    f"Parcel with ID {parcel_id} not found in {county} database.")
-        else:
-            print(f"No database found for {county} county.")
-
-    def add_county_database(self, county, database):
-        self.county_databases[county] = database
-
-    def remove_county_database(self, county):
-        del self.county_databases[county]
+class Parcel:
+    def __init__(self, df):
+        print(df.columns)
+        self.parcel_id = df.iloc[0]['Parcel ID']
+        self.property_address = df.iloc[0]['SITUS_ADDRESS']
+        self.city = df.iloc[0]['SITUS_POSTAL_CITY']
+        self.zip_code = df.iloc[0]['SITUS_POSTAL_ZIP']
+        self.legal_description = df.iloc[0]['PAR_LEGAL1']
+        self.lot = df.iloc[0]['PAR_SUBDIV_LOT']
+        self.block = df.iloc[0]['PAR_SUBDIV_BLOCK']
+        self.subdivision_name = df.iloc[0]['PAR_SUBDIV_NAME']
+        self.subdivision_code = df.iloc[0]['PAR_SUBDIVISION']
+        self.or_book = df.iloc[0]['SALE_BOOK_LAST']
+        self.or_page = df.iloc[0]['SALE_PAGE_LAST']
+        self.or_inst = df.iloc[0]['SALE_INSTRNO_LAST']

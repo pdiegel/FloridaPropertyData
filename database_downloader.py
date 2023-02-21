@@ -7,11 +7,9 @@ import time
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
-TEMP_DOWNLOAD_DESTINATION = os.path.join(DATA_DIR, 'temp.zip')
+TEMP_ZIP_DOWNLOAD_PATH = os.path.join(DATA_DIR, 'temp.zip')
 COUNTIES = ['sarasota', 'manatee', 'charlotte']
 COUNTY_DIRECTORIES = [os.path.join(DATA_DIR, county) for county in COUNTIES]
-COLUMN_RENAME_DICTIONARY = {'Parcel ID': ['account', 'Parcel ID',
-                                          'parcelid', 'ParcelID', 'ACCOUNT', 'PARID'], 'Street': ['LOCS']}
 
 
 def determine_county(download_url: str) -> str:
@@ -28,20 +26,27 @@ def download_db(download_url: str) -> None:
     '''Downloads and zips a file'''
     print(f'Downloading file from {download_url}..')
     response = urllib.request.urlopen(download_url)
-    file = open(TEMP_DOWNLOAD_DESTINATION, 'wb')
+    if download_url.endswith('zip'):
+        temp_path = TEMP_ZIP_DOWNLOAD_PATH
+    else:
+        file_name = download_url.split('/')[-1]
+        temp_path = os.path.join(DATA_DIR, file_name)
+    file = open(temp_path, 'wb')
     file.write(response.read())
     file.close()
     print("Download completed successfully.")
+    return temp_path
 
 
 def unzip_file(file_path):
-    with ZipFile(file_path, 'r') as zObject:
-        # Extracting all the members of the zip
-        # into a specific location.
-        zObject.extractall(DATA_DIR)
-    if os.path.exists(file_path):
-        os.remove(file_path)
-    print('File unzipped successfully.')
+    if file_path.endswith('zip'):
+        with ZipFile(file_path, 'r') as zObject:
+            # Extracting all the members of the zip
+            # into a specific location.
+            zObject.extractall(DATA_DIR)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        print('File unzipped successfully.')
 
 
 def determine_file_delimiter(item_path):
@@ -52,6 +57,48 @@ def determine_file_delimiter(item_path):
             if '|' in f.read():
                 sep = '|'
     return sep
+
+
+def open_df(path, sep):
+
+    if 'Sarasota' in path:
+        columns_to_keep = [
+            "ACCOUNT", "LOCN", "LOCS", "LOCD", "UNIT", "LOCCITY", "LOCZIP",
+            "SUBD", "BLOCK", "LOT", "OR_BOOK", "OR_PAGE", "LEGALREFER",
+            "LEGAL1", "LEGAL2", "LEGAL3", "LEGAL4"
+        ]
+    elif 'manatee_ccdf' in path:
+        columns_to_keep = [
+            "PAR_LEGAL1", "PAR_LEGAL2", "PAR_LEGAL3", "PAR_SUBDIV_BLOCK",
+            "PAR_SUBDIV_LOT", "PAR_SUBDIV_NAME", "PAR_SUBDIVISION", "PARID",
+            "SITUS_ADDRESS", "SITUS_PLACE_CODE", "SITUS_POSTAL_CITY",
+            "SITUS_POSTAL_ZIP", "SALE_BOOK_LAST", "SALE_PAGE_LAST",
+            "SALE_INSTRNO_LAST"
+        ]
+    elif 'cd.' in path:
+        columns_to_keep = [
+            "account", "streetnumber", "streetname", "padZip", "SaleBook",
+            "SalePage", "InstrumentNumber", "longlegal"
+        ]
+    else:
+        df = pd.read_csv(
+            path, encoding='latin1', on_bad_lines='skip', dtype=str,
+            sep=sep, skipinitialspace=True)
+        return df
+
+    df = pd.read_csv(
+        path, encoding='latin1', on_bad_lines='skip', dtype=str,
+        sep=sep, skipinitialspace=True, usecols=columns_to_keep)
+    return df
+
+
+def format_pid_column(df):
+    columns_to_check = ['account', 'Parcel ID',
+                        'parcelid', 'ParcelID', 'ACCOUNT', 'PARID']
+    for col in columns_to_check:
+        if col in df.columns:
+            df.rename({col: 'Parcel ID'}, axis='columns', inplace=True)
+    return df
 
 
 def convert_files_to_gzip():
@@ -66,18 +113,10 @@ def convert_files_to_gzip():
             file_name = item.split('.')[0]
             gzip_path = os.path.join(directory, f'{file_name}.gzip')
 
-            temporary_df = pd.read_csv(item_path, encoding='latin1',
-                                       on_bad_lines='skip', dtype=str, sep=sep,
-                                       skipinitialspace=True)
+            temporary_df = open_df(item_path, sep)
             temporary_df.fillna('0', inplace=True)
+            temporary_df = format_pid_column(temporary_df)
 
-            columns_to_check = ['account', 'Parcel ID',
-                                'parcelid', 'ParcelID', 'ACCOUNT', 'PARID']
-            for col in columns_to_check:
-                if col in temporary_df.columns:
-                    temporary_df.rename(
-                        {col: 'Parcel ID'}, axis='columns', inplace=True)
-                    print(f'Changed "{col}" column to "Parcel ID" in {item}.')
             temporary_df.to_csv(gzip_path, index=False,
                                 compression='gzip', sep=sep)
             os.remove(item_path)
@@ -109,6 +148,7 @@ def move_unzipped_files(county):
 def main():
     start = time.time()
     db_download_urls = [
+        'https://www.manateepao.gov/data/subdivisions_in_manatee.csv',
         'https://www.sc-pa.com/downloads/SCPA_Parcels_Sales_CSV.zip',
         'https://www.sc-pa.com/downloads/SCPA_Detailed_Data.zip',
         'https://www.manateepao.gov/data/manatee_ccdf.zip',
@@ -118,8 +158,8 @@ def main():
     file_num = 1
 
     for download_url in db_download_urls:
-        download_db(download_url)
-        unzip_file(TEMP_DOWNLOAD_DESTINATION)
+        temp_path = download_db(download_url)
+        unzip_file(temp_path)
         county = determine_county(download_url)
         print(f'URL {file_num} is in {county} county..')
         move_unzipped_files(county)

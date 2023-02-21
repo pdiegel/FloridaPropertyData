@@ -1,21 +1,38 @@
-# Load the database for each county
-county_databases = {
-    'Sarasota': pd.read_csv('county1_database.csv'),
-    'Manatee': pd.read_csv('county2_database.csv'),
-    'Charlotte': pd.read_csv('county3_database.csv'),
+import os
+import pandas as pd
+from helpers import databases, parcel
+
+# Define constants
+PARCEL_ID_COL = 'Parcel ID'
+
+# Build file paths and set separators
+data_dir = 'data'
+county_files = {
+    'Sarasota': (os.path.join(data_dir, 'sarasota', 'Sarasota.gzip'), ','),
+    'Manatee': (os.path.join(data_dir, 'manatee', 'manatee_ccdf.gzip'), ','),
+    'Charlotte': (os.path.join(data_dir, 'charlotte', 'cd.gzip'), '|'),
     # add more counties here
 }
 
-# Create a ParcelDatabase object
-parcel_db = ParcelDatabase(county_databases)
+# Load the database for each county
+county_databases = {
+    county: pd.read_csv(file_path, compression='gzip', sep=sep, dtype=str)
+    for county, (file_path, sep) in county_files.items()
+}
 
-# Prompt the user for the parcel ID and county
-parcel_id = input("Enter the parcel ID: ")
-county = input("Enter the county: ")
+# Create a ParcelDatabases object
+county_parcel_databases = databases.ParcelDatabases(county_databases)
 
-# Call the find_parcel_data method to get the parcel data
-parcel_data = parcel_db.find_parcel_data(parcel_id, county)
+# Prompt the user for the parcel ID
+parcel_id = "2237209209"
 
-# Display the parcel data if it was found
-if parcel_data is not None:
-    print(parcel_data)
+# Call the get_parcel_info method to get the parcel data
+try:
+    county, parcel_data = county_parcel_databases.get_parcel_info(parcel_id)
+    p = parcel.Parcel(parcel_data)
+    print(vars(p))
+except ValueError:
+    county, parcel_data = None, None
+    print('The parcel ID provided is not valid for this county.')
+
+print(parcel_data)
