@@ -92,6 +92,12 @@ def open_df(path, sep):
     return df
 
 
+def remove_df_blank_space(df):
+    for col in df.columns:
+        df[col] = df[col].str.strip()
+    return df
+
+
 def format_pid_column(df):
     columns_to_check = ['account', 'Parcel ID',
                         'parcelid', 'ParcelID', 'ACCOUNT', 'PARID']
@@ -115,6 +121,7 @@ def convert_files_to_gzip():
 
             temporary_df = open_df(item_path, sep)
             temporary_df.fillna('0', inplace=True)
+            temporary_df = remove_df_blank_space(temporary_df)
             temporary_df = format_pid_column(temporary_df)
 
             temporary_df.to_csv(gzip_path, index=False,

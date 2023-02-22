@@ -8,6 +8,7 @@ class ParcelDatabases:
             parcel_data = county_database.loc[
                 county_database['Parcel ID'] == parcel_id]
             if not parcel_data.empty:
+                print(f'{county} County Retrieved.')
                 return county, parcel_data
 
         raise ValueError('Invalid Parcel ID provided.')

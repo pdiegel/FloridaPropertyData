@@ -24,15 +24,14 @@ county_databases = {
 county_parcel_databases = databases.ParcelDatabases(county_databases)
 
 # Prompt the user for the parcel ID
-parcel_id = "2237209209"
+parcel_id = "0138110106"
 
 # Call the get_parcel_info method to get the parcel data
+
 try:
     county, parcel_data = county_parcel_databases.get_parcel_info(parcel_id)
-    p = parcel.Parcel(parcel_data)
+    p = parcel.Parcel(county, parcel_data)
     print(vars(p))
 except ValueError:
     county, parcel_data = None, None
     print('The parcel ID provided is not valid for this county.')
-
-print(parcel_data)
