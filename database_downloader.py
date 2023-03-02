@@ -1,9 +1,10 @@
-import pandas as pd
+'''This module will download and unzip county database files, and place
+ them in their respective directories'''
 import os
 import urllib.request
 from zipfile import ZipFile
 import time
-
+import pandas as pd
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
