@@ -1,0 +1,43 @@
+sarasota.csv:
+  - ACCOUNT
+  - LOCN
+  - LOCS
+  - LOCD
+  - UNIT
+  - LOCCITY
+  - LOCZIP
+  - SUBD
+  - BLOCK
+  - LOT
+  - OR_BOOK
+  - OR_PAGE
+  - LEGALREFER
+  - LEGAL1
+  - LEGAL2
+  - LEGAL3
+  - LEGAL4
+manatee_ccdf.csv:
+  - PAR_LEGAL1
+  - PAR_LEGAL2
+  - PAR_LEGAL3
+  - PAR_SUBDIV_BLOCK
+  - PAR_SUBDIV_LOT
+  - PAR_SUBDIV_NAME
+  - PAR_SUBDIVISION
+  - PARID
+  - SITUS_ADDRESS
+  - SITUS_PLACE_CODE
+  - SITUS_POSTAL_CITY
+  - SITUS_POSTAL_ZIP
+  - SALE_BOOK_LAST
+  - SALE_PAGE_LAST
+  - SALE_INSTRNO_LAST
+cd.txt:
+  - account
+  - streetnumber
+  - streetname
+  - padZip
+  - SaleBook
+  - SalePage
+  - InstrumentNumber
+  - longlegal
