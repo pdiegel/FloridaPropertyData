@@ -42,4 +42,4 @@ This project is licensed under the MIT License. See the LICENSE.md file for more
 
 ## Contact
 
-If you have any questions or concerns, please contact us at [philipdiegel@gmail.com].
+If you have any questions or concerns, please contact me at [philipdiegel@gmail.com].
