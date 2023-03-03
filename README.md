@@ -23,7 +23,7 @@ from county_property_data import ParcelDataCollection
 parcel_id = "123456789"
 county_data = ParcelDataCollection(parcel_id)
 ```    
-5. The ParcelDataCollection class will search through each county dataframe class in the module and return an instance of the county's dataframe class, if available. At the moment, there are three concrete dataframe classes available: Sarasota, Manatee, and Charlotte counties. The dataframe class will instantiate, and an instance variable dictionary parcel_data will be created. This variable contains much of the parcel's information.
+5. The ParcelDataCollection class will search through each county dataframe class in the module and return an instance of the county's dataframe class, if available. At the moment, there are two concrete dataframe classes available: Sarasota, and Manatee counties. The dataframe class will instantiate, and an instance variable dictionary parcel_data will be created. This variable contains much of the parcel's information.
 6. You can access the parcel data by calling the instance variable `parcel_data`. For example, to print the parcel's property address:
     ``` python
     print(county_data.parcel_data['address'])
