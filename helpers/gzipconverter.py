@@ -1,38 +1,38 @@
 '''This module contains the GZIPConverter class.'''
 import os
 import pandas as pd
-from helpers import downloader
 import yaml
+from helpers import downloader
 
 
 class GZIPConverter:
     '''This class handles file conversion to gzip format.'''
     @staticmethod
-    def get_database_file_paths() -> list:
+    def get_dataframe_file_paths() -> list:
         """
-        Returns a list of paths to the database files.
+        Returns a list of paths to the dataframe files.
 
         Returns:
-            A list of strings representing the paths to the database files.
+            A list of strings representing the paths to the dataframe files.
         """
-        database_file_paths: list = []
+        dataframe_file_paths: list = []
         for (root, _, files) in os.walk(downloader.Downloader.data_folder,
                                         topdown=True):
             for file in files:
                 file_path = os.path.join(root, file)
-                database_file_paths.append(file_path)
-        return database_file_paths
+                dataframe_file_paths.append(file_path)
+        return dataframe_file_paths
 
     @staticmethod
-    def convert_files_to_gzip(database_file_paths: list) -> None:
+    def convert_files_to_gzip(dataframe_file_paths: list) -> None:
         """
-        Converts a list of database files to gzip format.
+        Converts a list of dataframe files to gzip format.
 
         Args:
-            database_file_paths: A list of strings representing the paths to
-            the database files to convert.
+            dataframe_file_paths: A list of strings representing the paths to
+            the dataframe files to convert.
         """
-        for file_path in database_file_paths:
+        for file_path in dataframe_file_paths:
             file_parent_directory = '/'.join(file_path.split('/')[:-1])
             file_type: str = file_path.split('.')[-1]
             file_name: str = file_path.split('.')[0].split('/')[-1]
@@ -42,7 +42,8 @@ class GZIPConverter:
             file_destination = os.path.join(
                 file_parent_directory, f'{file_name}.gzip')
 
-            temporary_df: pd.DataFrame = GZIPConverter.open_df(file_path, sep)
+            temporary_df: pd.DataFrame = GZIPConverter.open_df(
+                file_path, sep=sep)
             temporary_df.fillna('0', inplace=True)
             temporary_df: pd.DataFrame = GZIPConverter.remove_df_blank_space(
                 temporary_df)
@@ -74,7 +75,7 @@ class GZIPConverter:
         return sep
 
     @staticmethod
-    def open_df(file_path: os.path, sep: str) -> pd.DataFrame:
+    def open_df(file_path: os.path, compression_type: str = '', sep: str = ',') -> pd.DataFrame:
         """
         Opens a dataframe from the given text file.
 
@@ -86,6 +87,11 @@ class GZIPConverter:
             A pandas dataframe representing the contents of the text file.
         """
         columns_to_keep = GZIPConverter.get_columns_to_keep(file_path)
+
+        if compression_type:
+            dataframe = pd.read_csv(
+                file_path, dtype=str, sep=sep,  compression=compression_type)
+            return dataframe
 
         if not columns_to_keep:
             dataframe = pd.read_csv(
@@ -111,6 +117,7 @@ class GZIPConverter:
         """
         for column in dataframe.columns:
             dataframe[column] = dataframe[column].str.strip()
+            dataframe[column] = dataframe[column].str.replace('nan', '0')
         return dataframe
 
     @staticmethod
@@ -135,7 +142,7 @@ class GZIPConverter:
     @staticmethod
     def get_columns_to_keep(file_path: os.path) -> list:
         """
-        Returns a list of database columns to keep for a given text file.
+        Returns a list of dataframe columns to keep for a given text file.
 
         Args:
             file_path: A string representing the path to the text file.

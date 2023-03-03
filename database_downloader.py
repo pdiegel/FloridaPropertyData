@@ -1,4 +1,4 @@
-'''This module will download and unzip county database files, and place
+'''This module will download and unzip county dataframe files, and place
  them in their respective directories'''
 from helpers import downloader, gzipconverter
 
@@ -17,7 +17,7 @@ DOWNLOAD_DICT = {
 
 def main(download_dict: dict) -> None:
     '''
-    Downloads all given county databases.
+    Downloads all given county dataframes.
 
     Args:
         download_dict: dictionary containing County as the keys,
@@ -25,7 +25,7 @@ def main(download_dict: dict) -> None:
     '''
     download_object = downloader.Downloader(download_dict)
     download_object.download()
-    file_path_list = gzipconverter.GZIPConverter.get_database_file_paths()
+    file_path_list = gzipconverter.GZIPConverter.get_dataframe_file_paths()
     gzipconverter.GZIPConverter.convert_files_to_gzip(file_path_list)
 
 

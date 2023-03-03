@@ -1,4 +1,4 @@
-'''This module handles downloading and unzipping county database files.'''
+'''This module handles downloading and unzipping county dataframe files.'''
 import os
 import urllib.request
 from helpers import unzipper
