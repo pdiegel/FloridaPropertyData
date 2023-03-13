@@ -87,6 +87,12 @@ class GZIPConverter:
             A pandas dataframe representing the contents of the text file.
         """
         columns_to_keep = GZIPConverter.get_columns_to_keep(file_path)
+        print(file_path)
+        if str(file_path).endswith('xlsx'):
+            dataframe = pd.read_excel(
+                file_path, dtype=str,
+                usecols=columns_to_keep)
+            return dataframe
 
         if compression_type:
             dataframe = pd.read_csv(

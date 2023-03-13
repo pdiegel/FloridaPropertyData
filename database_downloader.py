@@ -10,7 +10,9 @@ DOWNLOAD_DICT = {
         'https://www.manateepao.gov/data/manatee_ccdf.zip',
         'https://www.manateepao.gov/data/subdivisions_in_manatee.csv'],
     'charlotte': [
-        'https://www.ccappraiser.com/downloads/charlotte.zip'
+        'https://www.ccappraiser.com/downloads/charlotte.zip',
+        'https://www.ccappraiser.com/downloads/condominiums.xlsx',
+        'https://www.ccappraiser.com/downloads/subdivisions.xlsx'
     ]
 }
 

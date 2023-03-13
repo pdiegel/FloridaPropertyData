@@ -11,8 +11,8 @@ class ParcelDataCollection:
     '''
     dataframe_classes = {
         'sarasota': county_df.Sarasota,
-        'manatee': county_df.Manatee
-        # 'charlotte': county_df.Charlotte
+        'manatee': county_df.Manatee,
+        'charlotte': county_df.Charlotte
     }
 
     def __init__(self, parcel_id: str):
@@ -64,6 +64,8 @@ class ParcelDataCollection:
 
 PARCEL_ID = '1947400154'
 PARCEL_ID = '0594011650'
+PARCEL_ID = '412122279020'
+
 
 logging.basicConfig(level=logging.INFO)
 parcel = ParcelDataCollection(PARCEL_ID)
