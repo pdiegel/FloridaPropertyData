@@ -1,12 +1,12 @@
 '''This module provides a set of classes for accessing county property
 data in a standardized way.
 
-This module provides the `CountyDataframe` abstract base class, which 
+This module provides the `CountyDataframe` abstract base class, which
 defines a common interface for accessing county property data. To create
 a new county dataframe class, you should subclass this class and
 implement the abstract `find_parcel_data` method.
 
-The `CountyDataframe` class is intended to be used as a base class for 
+The `CountyDataframe` class is intended to be used as a base class for
 specific county property dataframe classes. Each county dataframe class
 should implement the `find_parcel_data` method, which retrieves the
 parcel data associated with the parcel ID specified in the constructor
@@ -38,14 +38,14 @@ Abstract methods:
     constructor and returns it as a dictionary.
 
 Methods:
-    find_location_data(self, parcel_dataframe: pd.DataFrame) -> None: 
+    find_location_data(self, parcel_dataframe: pd.DataFrame) -> None:
     This method finds and formats the address data for the parcel data
     dictionary.
-    
+
     find_subdivision_data(self, parcel_dataframe: pd.DataFrame) -> None:
     This method finds and formats the property type and subdivision data
     for the parcel data dictionary.
-    
+
     find_legal_data(self, parcel_dataframe: pd.DataFrame) -> None:
     This method finds and formats the legal description data for the
     parcel data dictionary.
@@ -65,7 +65,9 @@ import re
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 from helpers import misc, gzipconverter
+from logger import logger
 
 
 class CountyDataframe(ABC):
@@ -138,19 +140,19 @@ class Sarasota(CountyDataframe):
     Attributes:
         county (str): The name of the county.
 
-        county_data_folder (str): The path to the directory where county 
+        county_data_folder (str): The path to the directory where county
         data is stored.
 
         main_dataframe_path (os.path): The path to the main dataframe
         file.
 
-        subdivision_lookup_path (os.path): The path to the subdivision 
+        subdivision_lookup_path (os.path): The path to the subdivision
         lookup file.
 
-        main_dataframe (pd.DataFrame): The main dataframe containing 
+        main_dataframe (pd.DataFrame): The main dataframe containing
         parcel data.
 
-        subdivision_lookup_dataframe (pd.DataFrame): The dataframe 
+        subdivision_lookup_dataframe (pd.DataFrame): The dataframe
         containing subdivision data.
     '''
     county_data_folder = os.path.join(
@@ -165,7 +167,7 @@ class Sarasota(CountyDataframe):
     main_dataframe = gzipconverter.GZIPConverter.open_df(
         main_dataframe_path, 'gzip')
 
-    subdivision_lookup_dataframe = gzipconverter.GZIPConverter.open_df(
+    subdivision_lookup_df = gzipconverter.GZIPConverter.open_df(
         subdivision_lookup_path, 'gzip')
 
     def __init__(self, parcel_id: str):
@@ -181,7 +183,7 @@ class Sarasota(CountyDataframe):
         self.parcel_id = parcel_id
         self.county = 'sarasota'
         self.main_dataframe = Sarasota.main_dataframe
-        self.subdivision_lookup_dataframe = Sarasota.subdivision_lookup_dataframe
+        self.subdivision_lookup_dataframe = Sarasota.subdivision_lookup_df
         self.parcel_data = CountyDataframe.parcel_data_structure
         self.find_parcel_data()
 
@@ -313,19 +315,19 @@ class Manatee(CountyDataframe):
     Attributes:
         county (str): The name of the county.
 
-        county_data_folder (str): The path to the directory where county 
+        county_data_folder (str): The path to the directory where county
         data is stored.
 
         main_dataframe_path (os.path): The path to the main dataframe
         file.
 
-        subdivision_lookup_path (os.path): The path to the subdivision 
+        subdivision_lookup_path (os.path): The path to the subdivision
         lookup file.
 
-        main_dataframe (pd.DataFrame): The main dataframe containing 
+        main_dataframe (pd.DataFrame): The main dataframe containing
         parcel data.
 
-        subdivision_lookup_dataframe (pd.DataFrame): The dataframe 
+        subdivision_lookup_dataframe (pd.DataFrame): The dataframe
         containing subdivision data.
     '''
     county_data_folder = os.path.join(
@@ -340,7 +342,7 @@ class Manatee(CountyDataframe):
     main_dataframe = gzipconverter.GZIPConverter.open_df(
         main_dataframe_path, 'gzip')
 
-    subdivision_lookup_dataframe = gzipconverter.GZIPConverter.open_df(
+    subdivision_lookup_df = gzipconverter.GZIPConverter.open_df(
         subdivision_lookup_path, 'gzip')
 
     def __init__(self, parcel_id: str):
@@ -356,7 +358,7 @@ class Manatee(CountyDataframe):
         self.parcel_id = parcel_id
         self.county = 'manatee'
         self.main_dataframe = Manatee.main_dataframe
-        self.subdivision_lookup_dataframe = Manatee.subdivision_lookup_dataframe
+        self.subdivision_lookup_dataframe = Manatee.subdivision_lookup_df
         self.parcel_data = CountyDataframe.parcel_data_structure
         self.find_parcel_data()
 
@@ -419,7 +421,6 @@ class Manatee(CountyDataframe):
         '''
         subdivision_code = misc.convert_to_string(
             parcel_dataframe['PAR_SUBDIVISION'])
-        print(subdivision_code)
         if not subdivision_code:
             self.parcel_data['property_type'] = 'Metes & Bounds'
             return
@@ -490,19 +491,19 @@ class Charlotte(CountyDataframe):
     Attributes:
         county (str): The name of the county.
 
-        county_data_folder (str): The path to the directory where county 
+        county_data_folder (str): The path to the directory where county
         data is stored.
 
         main_dataframe_path (os.path): The path to the main dataframe
         file.
 
-        subdivision_lookup_path (os.path): The path to the subdivision 
+        subdivision_lookup_path (os.path): The path to the subdivision
         lookup file.
 
-        main_dataframe (pd.DataFrame): The main dataframe containing 
+        main_dataframe (pd.DataFrame): The main dataframe containing
         parcel data.
 
-        subdivision_lookup_dataframe (pd.DataFrame): The dataframe 
+        subdivision_lookup_dataframe (pd.DataFrame): The dataframe
         containing subdivision data.
     '''
     county_data_folder = os.path.join(
@@ -513,6 +514,12 @@ class Charlotte(CountyDataframe):
 
     main_dataframe = gzipconverter.GZIPConverter.open_df(
         main_dataframe_path, 'gzip', '|')
+
+    subdivision_lookup_path = os.path.join(
+        county_data_folder, 'subdivisions.gzip')
+
+    subdivision_lookup_df = gzipconverter.GZIPConverter.open_df(
+        subdivision_lookup_path, 'gzip')
 
     def __init__(self, parcel_id: str):
         '''Initialize a new Charlotte county dataframe object with the
@@ -529,6 +536,7 @@ class Charlotte(CountyDataframe):
         self.appraiser_link = f'https://www.ccappraiser.com/Show_Parcel.asp?\
 acct={parcel_id}%20%20&gen=T&tax=T&bld=T&oth=T&sal=T&lnd=T&leg=T'
         self.main_dataframe = Charlotte.main_dataframe
+        self.subdivision_lookup_dataframe = Charlotte.subdivision_lookup_df
         self.parcel_data = CountyDataframe.parcel_data_structure
         self.find_parcel_data()
 
@@ -588,7 +596,7 @@ acct={parcel_id}%20%20&gen=T&tax=T&bld=T&oth=T&sal=T&lnd=T&leg=T'
         # The format of short_legal is subdivision, section, block, lot and
         # must adhere to the following layout: pch 011 1337 0002
         short_legal = misc.convert_to_string(parcel_dataframe['shortlegal'])
-        print(short_legal)
+        logger.info('Legal Description = %s', short_legal)
         if 'ZZZ' in short_legal:
             self.parcel_data['property_type'] = 'Metes & Bounds'
             return
@@ -598,10 +606,34 @@ acct={parcel_id}%20%20&gen=T&tax=T&bld=T&oth=T&sal=T&lnd=T&leg=T'
         block = short_legal[8:12].lstrip('0')
         lot = short_legal[13:17].lstrip('0')
 
+        subdivision_dataframe = self.subdivision_lookup_dataframe.loc[
+            self.subdivision_lookup_dataframe['Designator']
+            == subdivision_code]
+
+        mask = subdivision_dataframe[
+            'Subdivision Name'].str.contains(section)
+        subdivision_row = subdivision_dataframe[mask]
+
+        subdivision = misc.convert_to_string(
+            subdivision_row['Subdivision Name'])
+        if subdivision:
+            self.parcel_data['property_type'] = 'Subdivision'
+            self.parcel_data['subdivision'] = subdivision
+            try:
+                plat_book, plat_page = self.find_plat_information(subdivision)
+                self.parcel_data['plat_book'] = plat_book
+                self.parcel_data['plat_page'] = plat_page
+            except ValueError as error:
+                logger.error(error)
+                # Handle the error here, such as by displaying a message
+                # to the user or exiting the program
+            else:
+                # Use the plat_book and plat_page values here
+                logger.info("Plat information found: Book %s,\
+ Page %s", plat_book, plat_page)
+
         self.parcel_data['lot'] = lot
         self.parcel_data['block'] = block
-        self.parcel_data['section'] = section
-        self.parcel_data['subdivision'] = subdivision_code
 
     def find_legal_data(self, parcel_dataframe: pd.DataFrame) -> None:
         '''Finds and formats legal data for the parcel data dictionary.
@@ -633,7 +665,7 @@ acct={parcel_id}%20%20&gen=T&tax=T&bld=T&oth=T&sal=T&lnd=T&leg=T'
 
     def find_city(self):
         '''Extracts the city name from the property information page of
-        an appraiser.
+        an appraiser website.
 
         Returns:
             A string containing the name of the city where the property
@@ -642,23 +674,49 @@ acct={parcel_id}%20%20&gen=T&tax=T&bld=T&oth=T&sal=T&lnd=T&leg=T'
         Raises:
             requests.exceptions.RequestException: If an error occurs
             while fetching the property information page.
-
-        Usage:
-            To use this method, create an instance of the Appraiser
-            class and set the appraiser_link attribute to the URL of the
-            appraiser's property information page. Then call the
-            find_city method to extract the city name.
-
-            Example:
-            >>> appraiser = Appraiser()
-            >>> appraiser.appraiser_link =\
-                'https://www.example.com/property_info'
-            >>> city = appraiser.find_city()
-            >>> print(city)
-            'San Francisco'
         '''
         url = self.appraiser_link
         page = requests.get(url, timeout=5)
         soup = BeautifulSoup(page.content, 'html.parser')
         results = soup.find('strong', text=re.compile('Property City & Zip:'))
         return results.parent.parent.find_all('div')[1].text[:-6].strip()
+
+    def find_plat_information(self, subdivision_name: str) -> tuple[str, str]:
+        """Searches the Charlotte Clerk of Courts website for plat
+        information for the given subdivision name.
+
+        Args:
+            subdivision_name (str): The name of the subdivision to
+            search for.
+
+        Returns:
+            tuple[str, str]: A tuple containing the book number and page
+            number for the subdivision's plat information.
+
+        Raises:
+            ValueError: If no plat information is found for the given
+            subdivision name.
+
+        """
+        with sync_playwright() as playwright:
+            with playwright.chromium.launch() as browser:
+                with browser.new_context() as context:
+                    page = context.new_page()
+                    page.goto(
+                        "https://clerkportal.charlotteclerk.com/PlatCondo\
+/PlatCondoIndex")
+                    page.locator('.k-header').get_by_role('listbox').click()
+                    page.locator('#searchPlatDroptDown_listbox').get_by_text(
+                        'Description').click()
+                    page.locator('#searchPlatText').fill(subdivision_name)
+                    page.locator('#searchPlatButton').click()
+                    page.wait_for_timeout(50)
+                    plat_book = page.locator(
+                        '.k-grid-content').locator('td').nth(1).inner_text()
+                    plat_page = page.locator(
+                        '.k-grid-content').locator('td').nth(2).inner_text()
+
+                    if not plat_book or not plat_page:
+                        raise ValueError('Unable to find plat information')
+
+                    return plat_book, plat_page

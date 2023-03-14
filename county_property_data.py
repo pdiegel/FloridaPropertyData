@@ -1,6 +1,6 @@
 '''This module handles connection with the county dataframe classes.'''
-import logging
 from helpers import county_dataframe as county_df
+from logger import logger
 
 
 class ParcelDataCollection:
@@ -32,8 +32,8 @@ class ParcelDataCollection:
             A county dataframe class if the parcel ID is found in one of the
             county dataframes, or None if it is not found in any of them.
         '''
-        logger = logging.getLogger(__name__)
-        for county, dataframe_class in ParcelDataCollection.dataframe_classes.items():
+        dataframe_dict = ParcelDataCollection.dataframe_classes.items()
+        for county, dataframe_class in dataframe_dict:
             county_dataframe = dataframe_class.main_dataframe
             if self.parcel_id in county_dataframe['Parcel ID'].unique():
                 logger.info('Parcel ID %r found in %r county.',
@@ -50,23 +50,29 @@ class ParcelDataCollection:
     def get_parcel_data(self) -> dict:
         '''Retrieve the parcel data associated with the given parcel ID.
 
-        This method calls the `find_parcel_data` method of the county dataframe class
-        to retrieve the parcel data associated with the parcel ID specified in the
-        constructor.
+        This method calls the `find_parcel_data` method of the county
+        dataframe class to retrieve the parcel data associated with the
+        parcel ID specified in the constructor.
 
         Returns:
-            A dictionary containing the parcel data, or an empty dictionary if the
-            parcel data could not be found.
+            A dictionary containing the parcel data, or an empty
+            dictionary if the parcel data could not be found.
         '''
+        if not self.county_dataframe_class:
+            logger.warning('Unable to retrieve parcel data for parcel ID %r: \
+county dataframe not found',
+                           self.parcel_id)
+            return {}
+
         parcel_data = self.county_dataframe_class.parcel_data
+        logger.info('Parcel data retrieved for parcel ID %r',
+                    self.parcel_id)
         return parcel_data
 
 
-PARCEL_ID = '1947400154'
-PARCEL_ID = '0594011650'
-PARCEL_ID = '412122279020'
+# PARCEL_ID = '1947400154'  # Sarasota County
+# PARCEL_ID = '0594011650'  # Manatee County
+PARCEL_ID = '412122279020'  # Charlotee County
 
-
-logging.basicConfig(level=logging.INFO)
 parcel = ParcelDataCollection(PARCEL_ID)
 print(parcel.parcel_data)
