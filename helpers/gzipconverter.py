@@ -2,8 +2,8 @@
 import os
 import pandas as pd
 import yaml
-from helpers import downloader
-from logger import logger
+from ..helpers import downloader
+from ..logger import logger
 
 
 class GZIPConverter:

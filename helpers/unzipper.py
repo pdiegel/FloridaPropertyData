@@ -1,7 +1,7 @@
 '''This module contains the Unzipper class.'''
 import os
 from zipfile import ZipFile
-from logger import logger
+from ..logger import logger
 
 
 class Unzipper:
