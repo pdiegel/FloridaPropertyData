@@ -5,7 +5,6 @@ from .helpers import downloader, gzipconverter
 from .logger import logger
 import os
 
-ROOT_DIR = r"\\Server\access"
 
 DOWNLOAD_DICT = {
     "sarasota": [

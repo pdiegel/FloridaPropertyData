@@ -68,7 +68,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright
 from ..helpers import misc, gzipconverter
 from ..logger import logger
-from ..database_downloader import ROOT_DIR
+from ..config import COUNTY_DATABASE_DIR
 
 
 class CountyDataframe(ABC):
@@ -77,13 +77,8 @@ class CountyDataframe(ABC):
     This class defines an interface for accessing county property data.
     To create a new county dataframe class, you should subclass this
     class and implement the abstract `find_parcel_data` method.
-
-    Attributes:
-        data_folder (str): The path to the directory where county data
-        is stored.
     """
 
-    data_folder = os.path.join(ROOT_DIR, "County Dataframes")
     parcel_data_structure = {
         "address_number": "",
         "street": "",
@@ -185,7 +180,7 @@ class Sarasota(CountyDataframe):
         containing subdivision data.
     """
 
-    county_data_folder = os.path.join(CountyDataframe.data_folder, "sarasota")
+    county_data_folder = os.path.join(COUNTY_DATABASE_DIR, "sarasota")
 
     main_dataframe_path = os.path.join(
         county_data_folder, "Parcel_Sales_CSV", "Sarasota.gzip"
@@ -460,7 +455,7 @@ class Manatee(CountyDataframe):
         containing subdivision data.
     """
 
-    county_data_folder = os.path.join(CountyDataframe.data_folder, "manatee")
+    county_data_folder = os.path.join(COUNTY_DATABASE_DIR, "manatee")
 
     main_dataframe_path = os.path.join(county_data_folder, "manatee_ccdf.gzip")
 
@@ -711,7 +706,7 @@ class Charlotte(CountyDataframe):
         containing subdivision data.
     """
 
-    county_data_folder = os.path.join(CountyDataframe.data_folder, "charlotte")
+    county_data_folder = os.path.join(COUNTY_DATABASE_DIR, "charlotte")
 
     main_dataframe_path = os.path.join(county_data_folder, "cd.gzip")
 

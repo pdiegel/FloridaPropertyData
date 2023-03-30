@@ -3,12 +3,13 @@ import os
 import urllib.request
 from ..helpers import unzipper
 from ..logger import logger
+from ..config import COUNTY_DATABASE_DIR
 
 
 class Downloader:
     """This class handles file downloading"""
 
-    data_folder: str = r"\\Server\access\County Dataframes"
+    data_folder: str = COUNTY_DATABASE_DIR
 
     def __init__(
         self: "Downloader", urls_to_download: dict, files_to_keep: dict

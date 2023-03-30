@@ -1,13 +1,15 @@
-'''This module contains the GZIPConverter class.'''
+"""This module contains the GZIPConverter class."""
 import os
 import pandas as pd
 import yaml
 from ..helpers import downloader
 from ..logger import logger
+from ..config import COLUMN_MAPPER
 
 
 class GZIPConverter:
-    '''This class handles file conversion to gzip format.'''
+    """This class handles file conversion to gzip format."""
+
     @staticmethod
     def get_dataframe_file_paths() -> list:
         """
@@ -18,8 +20,9 @@ class GZIPConverter:
         """
         logger.info("Getting paths to dataframe files")
         dataframe_file_paths: list = []
-        for (root, _, files) in os.walk(downloader.Downloader.data_folder,
-                                        topdown=True):
+        for root, _, files in os.walk(
+            downloader.Downloader.data_folder, topdown=True
+        ):
             for file in files:
                 file_path = os.path.join(root, file)
                 dataframe_file_paths.append(file_path)
@@ -35,33 +38,42 @@ class GZIPConverter:
             the dataframe files to convert.
         """
         for file_path in dataframe_file_paths:
-            file_parent_directory = '/'.join(file_path.split('/')[:-1])
-            file_type: str = file_path.split('.')[-1]
-            file_name: str = file_path.split('.')[0].split('/')[-1]
-            if 'gzip' in file_type:
+            file_parent_directory = "/".join(file_path.split("/")[:-1])
+            file_type: str = file_path.split(".")[-1]
+            file_name: str = file_path.split(".")[0].split("/")[-1]
+            if "gzip" in file_type:
                 logger.info(
                     "%s.%s already in gzip format, skipping conversion",
-                    file_name, file_type)
+                    file_name,
+                    file_type,
+                )
                 continue
             sep: str = GZIPConverter.determine_file_delimiter(
-                file_path, file_type)
+                file_path, file_type
+            )
 
             file_destination = os.path.join(
-                file_parent_directory, f'{file_name}.gzip')
+                file_parent_directory, f"{file_name}.gzip"
+            )
 
             temporary_df: pd.DataFrame = GZIPConverter.open_df(
-                file_path, sep=sep)
-            temporary_df.fillna('0', inplace=True)
+                file_path, sep=sep
+            )
+            temporary_df.fillna("0", inplace=True)
             temporary_df: pd.DataFrame = GZIPConverter.remove_df_blank_space(
-                temporary_df)
+                temporary_df
+            )
             temporary_df: pd.DataFrame = GZIPConverter.format_pid_column(
-                temporary_df)
+                temporary_df
+            )
 
-            temporary_df.to_csv(file_destination, index=False,
-                                compression='gzip', sep=sep)
+            temporary_df.to_csv(
+                file_destination, index=False, compression="gzip", sep=sep
+            )
             os.remove(file_path)
-            logger.info('%s.%s converted to gzip successfully',
-                        file_name, file_type)
+            logger.info(
+                "%s.%s converted to gzip successfully", file_name, file_type
+            )
 
     @staticmethod
     def determine_file_delimiter(file_path: os.path, file_type: str) -> str:
@@ -76,16 +88,17 @@ class GZIPConverter:
             A string representing the delimiter used in the text file.
         """
         logger.info("Determining delimiter for %s", file_path)
-        sep: str = ','
-        if file_type == 'txt':
-            with open(file_path, 'r', encoding='latin1') as file:
-                if '|' in file.read():
-                    sep: str = '|'
+        sep: str = ","
+        if file_type == "txt":
+            with open(file_path, "r", encoding="latin1") as file:
+                if "|" in file.read():
+                    sep: str = "|"
         return sep
 
     @staticmethod
-    def open_df(file_path: os.path, compression_type: str = '',
-                sep: str = ',') -> pd.DataFrame:
+    def open_df(
+        file_path: os.path, compression_type: str = "", sep: str = ","
+    ) -> pd.DataFrame:
         """
         Opens a dataframe from the given text file.
 
@@ -98,15 +111,15 @@ class GZIPConverter:
         """
         logger.info("Opening dataframe from %s", file_path)
 
-        if str(file_path).endswith('xlsx'):
-            dataframe = pd.read_excel(
-                file_path, dtype=str)
+        if str(file_path).endswith("xlsx"):
+            dataframe = pd.read_excel(file_path, dtype=str)
             logger.info("Dataframe opened from %s", file_path)
             return dataframe
 
         if compression_type:
             dataframe = pd.read_csv(
-                file_path, dtype=str, sep=sep,  compression=compression_type)
+                file_path, dtype=str, sep=sep, compression=compression_type
+            )
             logger.info("Dataframe opened from %s", file_path)
             return dataframe
 
@@ -114,14 +127,25 @@ class GZIPConverter:
 
         if not columns_to_keep:
             dataframe = pd.read_csv(
-                file_path, encoding='latin1', on_bad_lines='skip', dtype=str,
-                sep=sep, skipinitialspace=True)
+                file_path,
+                encoding="latin1",
+                on_bad_lines="skip",
+                dtype=str,
+                sep=sep,
+                skipinitialspace=True,
+            )
             logger.info("Dataframe opened from %s", file_path)
             return dataframe
 
         dataframe = pd.read_csv(
-            file_path, encoding='latin1', on_bad_lines='skip', dtype=str,
-            sep=sep, skipinitialspace=True, usecols=columns_to_keep)
+            file_path,
+            encoding="latin1",
+            on_bad_lines="skip",
+            dtype=str,
+            sep=sep,
+            skipinitialspace=True,
+            usecols=columns_to_keep,
+        )
         logger.info("Dataframe opened from %s", file_path)
         return dataframe
 
@@ -138,8 +162,8 @@ class GZIPConverter:
         """
         for column in dataframe.columns:
             dataframe[column] = dataframe[column].str.strip()
-            dataframe[column] = dataframe[column].str.replace('nan', '0')
-        logger.info('Blank spaces removed from dataframe.')
+            dataframe[column] = dataframe[column].str.replace("nan", "0")
+        logger.info("Blank spaces removed from dataframe.")
         return dataframe
 
     @staticmethod
@@ -154,12 +178,19 @@ class GZIPConverter:
             A pandas dataframe with the Parcel ID column formatted.
         """
         logger.info("Formatting Parcel ID column")
-        columns_to_check = ['account', 'Parcel ID',
-                            'parcelid', 'ParcelID', 'ACCOUNT', 'PARID']
+        columns_to_check = [
+            "account",
+            "Parcel ID",
+            "parcelid",
+            "ParcelID",
+            "ACCOUNT",
+            "PARID",
+        ]
         for col in columns_to_check:
             if col in dataframe.columns:
-                dataframe.rename({col: 'Parcel ID'},
-                                 axis='columns', inplace=True)
+                dataframe.rename(
+                    {col: "Parcel ID"}, axis="columns", inplace=True
+                )
         return dataframe
 
     @staticmethod
@@ -175,14 +206,12 @@ class GZIPConverter:
         """
         logger.info("Getting columns to keep for %s", file_path)
         columns_to_keep = []
-        with open(r'helpers\column_mapping.yaml', 'r',
-                  encoding='utf-8') as yaml_file:
+        with open(COLUMN_MAPPER, "r", encoding="utf-8") as yaml_file:
             column_mapping = yaml.safe_load(yaml_file)
 
         file_name = os.path.basename(file_path).lower()
         if file_name in column_mapping:
             columns_to_keep = column_mapping[file_name]
 
-        logger.info("Columns to keep for %s: %s",
-                    file_path, columns_to_keep)
+        logger.info("Columns to keep for %s: %s", file_path, columns_to_keep)
         return columns_to_keep
